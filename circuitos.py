@@ -26,34 +26,34 @@ def get_swapped_QFT(num_qubits):
 # Recibe un grafo, construye un circuito y devuelve los valores de la frecuencia
 def phaseAlgorithm(matrix, puerta):
     # Creamos el Oráculo
-    cBasico = getCircuit(matrix, puerta)    
+    oracle = getCircuit(matrix, puerta)    
     nQubits = len(matrix) + len(format(len(matrix), "b"))
     nBits = len(format(len(matrix), "b"))
     targets = [i for i in range(len(matrix))]
     controls = [i + len(matrix) for i in range(len(format(len(matrix), "b")))]
 
     # Creamos el circuito donde aplicar el algoritmo
-    c = qj.QCircuit(nQubits, nBits, 'c2')  
+    circuit = qj.QCircuit(nQubits, nBits, 'circuit')  
 
     # Aplicamos Hadamard a todos los qubits
     for i in range(nQubits):                    
-        c.add_operation('H', i)
+        circuit.add_operation('H', i)
 
     nControls = len(controls)
     indexControl = 0
     while (nControls != 0):     
         for i in range(2**indexControl):       
             # Aplicamos las puertas controladas M
-            c.add_operation(cBasico, targets=targets, controls=controls[indexControl])  
+            circuit.add_operation(oracle, targets=targets, controls=controls[indexControl])  
         indexControl += 1
         nControls -= 1
     fourier = get_swapped_QFT(nBits)   
     # Aplicamos Fourier                             
-    c.add_operation(fourier.invert(), targets=controls)    
+    circuit.add_operation(fourier.invert(), targets=controls)    
     # Medimos         
-    c.add_operation('measure', targets=controls, outputs=[0,1,2])   
+    circuit.add_operation('measure', targets=controls, outputs=[0,1,2])   
 
-    return c    # Devolvemos el circuito
+    return circuit    # Devolvemos el circuito
 
 # Construye un circuito a partir de una matriz (no aplica Hadamard al principio)
 def getCircuit(matrix, puerta):
@@ -64,12 +64,12 @@ def getCircuit(matrix, puerta):
             if (matrix[i][j] > 0):
                 targets[i][1].append(j+i)
 
-    c = qj.QGate(len(matrix), 0, 'c1')
+    oracle = qj.QGate(len(matrix), 0, 'oracle')
     for i in targets:
         while(len(i[1]) > 0):
-            c.add_operation(puerta, targets=i[0], controls=i[1].pop(0))
+            oracle.add_operation(puerta, targets=i[0], controls=i[1].pop(0))
 
-    return c
+    return oracle
 
 # Devuelve el porcentaje correspondiente a cada valor
 def frequency(circuit, iterations):
