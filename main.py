@@ -10,21 +10,28 @@ inicio = time.time()
 
 executer = qj.Drewom(extra={'return_struct':False})   # Calculo "realista"
 # executer = qj.Drewom(extra={'return_struct':True})      # Valores Quirk
-iteraciones = 150
+iteraciones = 1
 nGrafos = 1
 output = []
-rotacion = np.pi * 1/4     # La rotación dependerá de qué tipo de puerta estemos usando 2/8 = ^1/4
-puerta = f'r({rotacion})'
-m = gf.docMatrix
 
-# Circuito básico -> Ya se calcula en phaseAlgorithm()
-# circuitoBasico = ct.getCircuit(m, puerta)
+# Se introduce el grafo a mano desde la calse grafos.py
+# m = gf.docMatrix 
 
-# # Algoritmo de fase
-algoritmoFase = ct.phaseAlgorithm(m, puerta)
+# El grafo se lee desde el fichero DIMACS
+m = ct.readGraphFile("grafos/sts/sts-13")
+
+
+##################### PARA EJECUTAR EL CIRCUITO #####################
+# Algoritmo de fase
+algoritmoFase = ct.phaseAlgorithm(m)
 circuito = executer.execute(algoritmoFase, iteraciones)
 print(ct.frequency(circuito, iteraciones))
 final = time.time()
+
+##################### PARA EJECUTAR EL CIRCUITO #####################
+
+# Circuito básico -> Ya se calcula en phaseAlgorithm()
+# circuitoBasico = ct.getCircuit(m, puerta)
 
 # Compara distintas ejecuciones del mismo grafo
 # comparativaGrafos = ct.iteratePhaseAlgorithm(m, puerta, iteraciones, nGrafos)
@@ -37,3 +44,4 @@ final = time.time()
 # Cómo usar sys.prob(qubit_id)? -> recuerda quitar medida
 
 print('La ejecución ha tardado ' + str(final-inicio) + ' segundos.')
+

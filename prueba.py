@@ -13,27 +13,27 @@ def get_QFT(num_qubits):
     return QFT
 
 ##################### Código para crear un circuito cuántico simple ######################
-executer = qj.Drewom(extra={'return_struct':False})
-rotation = np.pi * 1 /4    
-gate = f'r({rotation})'  
-iterations = 10
+# executer = qj.Drewom(extra={'return_struct':False})
+# rotation = np.pi * 1 /4    
+# gate = f'r({rotation})'  
+# iterations = 10
 
-M1 = qj.QCircuit(4, 4, 'M1')       
+# M1 = qj.QCircuit(4, 4, 'M1')       
 
-for i in range(4):
-    M1.add_operation('H', targets=i)    
+# for i in range(4):
+#     M1.add_operation('H', targets=i)    
     
-M1.add_operation(gate, targets=0,controls=1)     
-M1.add_operation(gate, targets=1,controls=2)
-M1.add_operation(gate, targets=0,controls=3)
-M1.add_operation(gate, targets=2,controls=3)
-M1.add_operation('measure', targets=[0,1,2,3], outputs=[0,1,2,3])   
+# M1.add_operation(gate, targets=0,controls=1)     
+# M1.add_operation(gate, targets=1,controls=2)
+# M1.add_operation(gate, targets=0,controls=3)
+# M1.add_operation(gate, targets=2,controls=3)
+# M1.add_operation('measure', targets=[0,1,2,3], outputs=[0,1,2,3])   
 
-pr = executer.execute(M1, iterations)  
+# pr = executer.execute(M1, iterations)  
 
 
 
-print(pr)
+# print(pr)
 
 # pr[iteracion][medida][qubit]
 
@@ -184,3 +184,5 @@ print(pr)
 # M1.add_operation(z, 1, 2)
 # M1.add_operation(z, 0, 3)
 # M1.add_operation(z, 2, 3)
+
+

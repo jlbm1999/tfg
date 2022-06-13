@@ -24,13 +24,20 @@ def get_swapped_QFT(num_qubits):
     return QFT
 
 # Recibe un grafo, construye un circuito y devuelve los valores de la frecuencia
-def phaseAlgorithm(matrix, puerta):
-    # Creamos el Oráculo
-    oracle = getCircuit(matrix, puerta)    
+def phaseAlgorithm(matrix):
     nQubits = len(matrix) + len(format(len(matrix), "b"))
+    rotacion = 0 # La rotación dependerá de qué tipo de puerta estemos usando 2/8 = ^1/4
+    for i in range(len(format(nQubits, "b")) + 1):
+        if (2**i >= nQubits):
+            rotacion = np.pi * 2/2**i  
+            break 
+    puerta = f'r({rotacion})'
+    # Creamos el Oráculo
+    oracle = getCircuit(matrix, puerta)  
     nBits = len(format(len(matrix), "b"))
     targets = [i for i in range(len(matrix))]
     controls = [i + len(matrix) for i in range(len(format(len(matrix), "b")))]
+    ct = [i for i in range(len(controls))]
 
     # Creamos el circuito donde aplicar el algoritmo
     circuit = qj.QCircuit(nQubits, nBits, 'circuit')  
@@ -51,7 +58,7 @@ def phaseAlgorithm(matrix, puerta):
     # Aplicamos Fourier                             
     circuit.add_operation(fourier.invert(), targets=controls)    
     # Medimos         
-    circuit.add_operation('measure', targets=controls, outputs=[0,1,2])   
+    circuit.add_operation('measure', targets=controls, outputs=ct)   
 
     return circuit    # Devolvemos el circuito
 
@@ -73,7 +80,7 @@ def getCircuit(matrix, puerta):
 
 # Devuelve el porcentaje correspondiente a cada valor
 def frequency(circuit, iterations):
-    result = []
+    invertedList = []
     for i in circuit:  # Invierte los valores de la lista y los pasa a binario
         aux = ''
         for j in i:
@@ -81,32 +88,32 @@ def frequency(circuit, iterations):
                 aux = aux + f'{1}'
             else:
                 aux = aux + f'{0}'
-        result.append(int(aux,2))
+        invertedList.append(int(aux,2))
 
-    resultado = {}
-    maximo = max(result)    # Obtiene la frecuencia por elemento
+    result = {}
+    maximo = max(invertedList)    # Obtiene la frecuencia por elemento
     for i in range(maximo + 1):
-        resultado[i] = 0
-        for j in result:
+        result[i] = 0
+        for j in invertedList:
             if (i == j):
-                resultado[i] = resultado[i] + 1
+                result[i] = result[i] + 1
 
-    for i in range(len(resultado)):     # Pasa la frecuencia a porcentaje
-        resultado[i] = resultado[i]/iterations * 100 
-    return resultado
+    for i in range(len(result)):     # Pasa la frecuencia a porcentaje
+        result[i] = result[i]/iterations * 100 
+    return result
 
-def calculatePercentage(output):
-    graph = {}
-    for i in output:
-        if (len(i) > 0):
-            for j in i:
-                if (j in graph.keys()):
-                    graph[j] = graph[j] + i[j]
-                else:
-                    graph[j] = i[j]
-    for i in graph:
-        graph[i] = graph[i] / len(output)
-    return graph
+# def calculatePercentage(output):
+#     graph = {}
+#     for i in output:
+#         if (len(i) > 0):
+#             for j in i:
+#                 if (j in graph.keys()):
+#                     graph[j] = graph[j] + i[j]
+#                 else:
+#                     graph[j] = i[j]
+#     for i in graph:
+#         graph[i] = graph[i] / len(output)
+#     return graph
 
 # Recibe un grafo y aplica el algoritmo n veces. Luego hace la media de los porcentajes
 def iteratePhaseAlgorithm(graph, rotation, iterations, nGraphs):
@@ -120,4 +127,24 @@ def iteratePhaseAlgorithm(graph, rotation, iterations, nGraphs):
 
     return output
 
+def readGraphFile(file):
+    with open(file) as f: 
+        lines = f.readlines()
 
+    lines = [lines[i][2:-1] for i in range(len(lines))]
+    for i in range(len(lines)):
+        lines[i] = lines[i].split(' ')
+    nNodes = int(lines[0][1])    # Numero de nodos
+    nEdges = int(lines[0][2])    # Numero de aristas
+
+    edges = [(int(lines[i][0]) - 1, int(lines[i][1]) - 1) for i in range(1, nEdges + 1)]
+    m = [[0 for _ in range(nNodes)] for _ in range(nNodes)]
+
+    for i in edges:
+        m[i[0]][i[1]] = 1
+
+    count = 0
+    for i in range(len(m)):
+        m[i] = m[i][count:]
+        count += 1
+    return m
