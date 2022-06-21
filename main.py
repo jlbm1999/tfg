@@ -1,10 +1,8 @@
-from types import MemberDescriptorType
 import qsimov as qj
-import numpy as np
 from qsimov import QGate
 import circuitos as ct
-import grafos as gf
 import time
+import utils
 
 # inicio = time.time()
 
@@ -12,20 +10,26 @@ import time
 # executer = qj.Drewom(extra={'return_struct':False})      # Valores Quirk
 exact = True
 iterations = 100
+cutNode = None
 # <>
 
+# Grafos aleatorios
+# m = ct.randomMatrixGenerator(5)
+# print(m)
+
 # Se introduce el grafo a mano desde la calse grafos.py
-m = gf.prueba 
-# m = ct.readGraphFile("grafos/sts/sts-9")
+# m = utils.prueba 
+m = ct.readGraphFile("grafos/latin/latin-2", cutNode)
 cq = ct.executeCircuit(m, exact, iterations)
-if (exact):
-    for i in range(len(cq)):
-        if (cq[i] > 10**(-25)):
-            print(str(i) + ': ' + str((cq[i] * 100).round(1)))
-        else:
-            print(str(i) + ': 0')
-else:
-    print(ct.frequency(cq, iterations))
+print(cq)
+# if (exact):
+#     for i in range(len(cq)):
+#         if (cq[i] > 10**(-25)):
+#             print(str(i) + ': ' + str((cq[i] * 100).round(1)))
+#         else:
+#             print(str(i) + ': 0')
+# else:
+#     print(ct.frequency(cq, iterations))
     
 
 # El grafo se lee desde el fichero DIMACS

@@ -1,8 +1,8 @@
-from types import MemberDescriptorType
 import qsimov as qj
 import numpy as np
 from qsimov import QGate
 from qsimov.samples.fourier import get_swapped_QFT, get_QFT
+import utils
 
 # Recibe un grafo, construye un circuito y devuelve los valores de la frecuencia
 def phaseAlgorithm(matrix, exact):
@@ -43,7 +43,8 @@ def phaseAlgorithm(matrix, exact):
     # Aplicamos Fourier                             
     circuit.add_operation(fourier.invert(), targets=controls)     
     return circuit, controls, ct    # Devolvemos el circuito
-# <>
+
+# <> CAMBIAR ########################################################################################
 def executeCircuit(matrix, exact, iterations):
     executer = qj.Drewom(extra={'return_struct':exact})
     cq, controls, ct = phaseAlgorithm(matrix, exact)
@@ -61,12 +62,14 @@ def executeCircuit(matrix, exact, iterations):
             for j in range(in_size):
                 val = sys.get_state(aux + j)
                 odds[i] += val.real * val.real + val.imag * val.imag
-        return odds
+        return utils.returnValues(odds)
     else:
         # Medimos         
         cq.add_operation('measure', targets=controls, outputs=ct) 
         circuit = executer.execute(cq, iterations=iterations)
-        return circuit
+        return utils.frequency(circuit, iterations)
+
+# <> CAMBIAR ########################################################################################
 
 # Construye un circuito a partir de una matriz (no aplica Hadamard al principio)
 def getCircuit(matrix, puerta):
@@ -84,44 +87,8 @@ def getCircuit(matrix, puerta):
 
     return oracle
 
-# Devuelve el porcentaje correspondiente a cada valor
-def frequency(circuit, iterations):
-    invertedList = []
-    for i in circuit:  # Invierte los valores de la lista y los pasa a binario
-        aux = ''
-        for j in i:
-            if (j == True):
-                aux = aux + f'{1}'
-            else:
-                aux = aux + f'{0}'
-        invertedList.append(int(aux,2))
-
-    result = {}
-    maximo = max(invertedList)    # Obtiene la frecuencia por elemento
-    for i in range(maximo + 1):
-        result[i] = 0
-        for j in invertedList:
-            if (i == j):
-                result[i] = result[i] + 1
-
-    for i in range(len(result)):     # Pasa la frecuencia a porcentaje
-        result[i] = result[i]/iterations * 100 
-    return result
-
-# Recibe un grafo y aplica el algoritmo n veces. Luego hace la media de los porcentajes
-def iteratePhaseAlgorithm(graph, rotation, iterations, nGraphs):
-    output = []
-    executer = qj.Drewom(extra={'return_struct':False})
-
-    for _ in range(nGraphs):
-        algoritmoFase = phaseAlgorithm(graph, rotation)
-        circuito = executer.execute(algoritmoFase, iterations)
-        output.append(frequency(circuito, iterations))
-
-    return output
-
 # Lee un archivo en formato DIMACS y lo transforma en la matriz de adyacencia del grafo
-def readGraphFile(file):
+def readGraphFile(file, node=None):
     with open(file) as f: 
         lines = f.readlines()
 
@@ -137,22 +104,9 @@ def readGraphFile(file):
     for i in edges:
         m[i[0]][i[1]] = 1
 
-    count = 0
-    for i in range(len(m)):
-        m[i] = m[i][count:]
-        count += 1
-    
-     # RECORDAR COMENTAR CUANDO NO HAGA FALTA
-    m = updateMatrix(m, 1)
+    m = utils.cutHalfMatrix(m)
+
+    if (node is not None):
+        m = utils.updateMatrix(m, node)
    
     return m
-
-# Coge la matriz a la que se le ha eliminado el nodo y se eliminan los valores
-def updateMatrix(matrix, index):
-    matrix.pop(index)
-        
-    for i in range(index):
-        for j in range(len(matrix[i])):
-            if (j == index):
-                matrix[i].pop(j)
-    return matrix
