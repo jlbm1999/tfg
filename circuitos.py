@@ -2,29 +2,10 @@ from types import MemberDescriptorType
 import qsimov as qj
 import numpy as np
 from qsimov import QGate
-import grafos as gf
-
-
-def get_QFT(num_qubits):
-    QFT = QGate(num_qubits, 0, f"QFT{num_qubits}")
-    for i in range(num_qubits//2):
-        QFT.add_operation("SWAP", targets=[i, num_qubits-i-1])
-    for i in range(num_qubits):
-        QFT.add_operation("H", targets=[i])
-        for j in range(num_qubits - i - 1):
-            QFT.add_operation(f"RUnity({j+2})", targets=[i], controls={j+i+1})
-    return QFT
-
-def get_swapped_QFT(num_qubits):
-    QFT = QGate(num_qubits, 0, f"QFT{num_qubits}")
-    for i in range(num_qubits):
-        QFT.add_operation("H", targets=[i])
-        for j in range(num_qubits - i - 1):
-            QFT.add_operation(f"RUnity({j+2})", targets=[i], controls={j+i+1})
-    return QFT
+from qsimov.samples.fourier import get_swapped_QFT, get_QFT
 
 # Recibe un grafo, construye un circuito y devuelve los valores de la frecuencia
-def phaseAlgorithm(matrix):
+def phaseAlgorithm(matrix, exact):
     nQubits = len(matrix) + len(format(len(matrix), "b"))
     rotacion = 0 # La rotación dependerá de qué tipo de puerta estemos usando 2/8 = ^1/4
     for i in range(len(format(nQubits, "b")) + 1):
@@ -54,13 +35,38 @@ def phaseAlgorithm(matrix):
             circuit.add_operation(oracle, targets=targets, controls=controls[indexControl])  
         indexControl += 1
         nControls -= 1
-    fourier = get_swapped_QFT(nBits)   
+    if exact:
+        fourier = get_QFT(nBits)
+    else:
+        fourier = get_swapped_QFT(nBits) 
+      
     # Aplicamos Fourier                             
-    circuit.add_operation(fourier.invert(), targets=controls)    
-    # Medimos         
-    circuit.add_operation('measure', targets=controls, outputs=ct)   
-
-    return circuit    # Devolvemos el circuito
+    circuit.add_operation(fourier.invert(), targets=controls)     
+    return circuit, controls, ct    # Devolvemos el circuito
+# <>
+def executeCircuit(matrix, exact, iterations):
+    executer = qj.Drewom(extra={'return_struct':exact})
+    cq, controls, ct = phaseAlgorithm(matrix, exact)
+    if exact:
+        circuit = executer.execute(cq, iterations=1)
+        sys, _ = circuit[0]
+        nBits = cq.get_num_bits()
+        nQubits = cq.get_num_qubits() - nBits
+        out_size = 2**nBits
+        in_size = 2**nQubits
+        odds = np.zeros(out_size)
+        
+        for i in range(out_size):
+            aux = i << nQubits
+            for j in range(in_size):
+                val = sys.get_state(aux + j)
+                odds[i] += val.real * val.real + val.imag * val.imag
+        return odds
+    else:
+        # Medimos         
+        cq.add_operation('measure', targets=controls, outputs=ct) 
+        circuit = executer.execute(cq, iterations=iterations)
+        return circuit
 
 # Construye un circuito a partir de una matriz (no aplica Hadamard al principio)
 def getCircuit(matrix, puerta):
@@ -102,19 +108,6 @@ def frequency(circuit, iterations):
         result[i] = result[i]/iterations * 100 
     return result
 
-# def calculatePercentage(output):
-#     graph = {}
-#     for i in output:
-#         if (len(i) > 0):
-#             for j in i:
-#                 if (j in graph.keys()):
-#                     graph[j] = graph[j] + i[j]
-#                 else:
-#                     graph[j] = i[j]
-#     for i in graph:
-#         graph[i] = graph[i] / len(output)
-#     return graph
-
 # Recibe un grafo y aplica el algoritmo n veces. Luego hace la media de los porcentajes
 def iteratePhaseAlgorithm(graph, rotation, iterations, nGraphs):
     output = []
@@ -127,6 +120,7 @@ def iteratePhaseAlgorithm(graph, rotation, iterations, nGraphs):
 
     return output
 
+# Lee un archivo en formato DIMACS y lo transforma en la matriz de adyacencia del grafo
 def readGraphFile(file):
     with open(file) as f: 
         lines = f.readlines()
@@ -147,4 +141,18 @@ def readGraphFile(file):
     for i in range(len(m)):
         m[i] = m[i][count:]
         count += 1
+    
+     # RECORDAR COMENTAR CUANDO NO HAGA FALTA
+    m = updateMatrix(m, 1)
+   
     return m
+
+# Coge la matriz a la que se le ha eliminado el nodo y se eliminan los valores
+def updateMatrix(matrix, index):
+    matrix.pop(index)
+        
+    for i in range(index):
+        for j in range(len(matrix[i])):
+            if (j == index):
+                matrix[i].pop(j)
+    return matrix
