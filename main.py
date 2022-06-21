@@ -18,8 +18,8 @@ cutNode = None
 # print(m)
 
 # Se introduce el grafo a mano desde la calse grafos.py
-# m = utils.prueba 
-m = ct.readGraphFile("grafos/latin/latin-2", cutNode)
+m = utils.prueba 
+# m = ct.readGraphFile("grafos/latin/latin-2", cutNode)
 cq = ct.executeCircuit(m, exact, iterations)
 print(cq)
 # if (exact):

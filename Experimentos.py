@@ -15,7 +15,7 @@ maxNodos = 15
 for i in range(maxNodos):
     inicio = time.time()
     for _ in range(2):
-        m = ct.randomMatrixGenerator(i + 1)
+        m = utils.randomMatrixGenerator(i + 1)
         cq = ct.executeCircuit(m, exact, iterations)
         print(cq)
     final = time.time()
@@ -24,10 +24,6 @@ for i in range(maxNodos):
 #################### EXPERIMENTO 2 ####################
 # En este experimento se creara un grafo aleatorio y su permutacion, y se comprobara si son isomorfos (100% tienen que serlo)
 # -> Se utilizara el metodo de medicion de simulador
-
-
-
-
 
 
 

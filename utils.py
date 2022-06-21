@@ -21,14 +21,6 @@ def timeConversion(tiempo):
     else:
         return str(tiempo) + ' segundos'
 
-# Recibe una matriz y devuelve la parte superior
-def cutHalfMatrix(matrix):
-    count = 0
-    for i in range(len(matrix)):
-        matrix[i] = matrix[i][count:]
-        count += 1
-    return matrix
-
 # Obtiene los resultados de la medicion como simulador y formatea el resultado
 def returnValues(values):
     result = []
@@ -100,3 +92,11 @@ def randomMatrixGenerator(nNodes):
                 if(rnd.random() >= 0.5):
                     m[i][j] = 1
     return cutHalfMatrix(m)
+
+# Recibe una matriz y devuelve la parte superior
+def cutHalfMatrix(matrix):
+    count = 0
+    for i in range(len(matrix)):
+        matrix[i] = matrix[i][count:]
+        count += 1
+    return matrix
