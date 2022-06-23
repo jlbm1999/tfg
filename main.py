@@ -7,9 +7,9 @@ import utils
 # inicio = time.time()
 
 # executer = qj.Drewom(extra={'return_struct':False})   # Calculo "realista"
-# executer = qj.Drewom(extra={'return_struct':False})      # Valores Quirk
-exact = True
-iterations = 100
+executer = qj.Drewom(extra={'return_struct':True})      # Valores Quirk
+exact = False
+iterations = 1000
 cutNode = None
 # <>
 
@@ -20,8 +20,9 @@ cutNode = None
 # Se introduce el grafo a mano desde la calse grafos.py
 m = utils.prueba 
 # m = ct.readGraphFile("grafos/latin/latin-2", cutNode)
-cq = ct.executeCircuit(m, exact, iterations)
-print(cq)
+
+# cq = ct.executeCircuit(utils.all_grahps[2], exact, iterations)
+# print(cq)
 # if (exact):
 #     for i in range(len(cq)):
 #         if (cq[i] > 10**(-25)):
@@ -56,9 +57,9 @@ print(cq)
 
 ##################### PARA EJECUTAR EL CIRCUITO #####################
 # Algoritmo de fase
-# algoritmoFase = ct.phaseAlgorithm(m)
-# circuito = executer.execute(algoritmoFase, iteraciones)
-# print(ct.frequency(circuito, iteraciones))
+algoritmoFase = ct.phaseAlgorithm(utils.all_grahps[3], True)
+circuito = executer.execute(algoritmoFase[0], 100)
+print(circuito[0][0].get_state())
 # final = time.time()
 
 ##################### PARA EJECUTAR EL CIRCUITO #####################
