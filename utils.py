@@ -1,12 +1,49 @@
+from math import perm
 import qsimov as qj
 import circuitos as ct
 import random as rnd
+import itertools
+import numpy as np
 
 # Para almacenar todos los grafos que se vayan a probar
 
 prueba = [[0,1,1,0],[0,0,1],[0,1],[0]]
+prueba2 = [ [0,1,1,0],
+            [1,0,0,1],
+            [1,0,0,1],
+            [0,1,1,0]]
 docMatrix = [[0,1,1,1,0],[0,0,0,1],[0,0,1],[0,1],[0]]
-M2 = []
+M1 =   [[0,0,0,0,0,1,1,0,0,1], 
+        [0,0,1,1,0,0,0,0,0,1], 
+        [0,1,0,1,1,0,1,1,1,1], 
+        [0,1,1,0,1,1,1,1,0,0], 
+        [0,0,1,1,0,1,0,0,0,1], 
+        [1,0,0,1,1,0,1,0,1,1], 
+        [1,0,1,1,0,1,0,1,1,1], 
+        [0,0,1,1,0,0,1,0,1,1], 
+        [0,0,1,0,0,1,1,1,0,0], 
+        [1,1,1,0,1,1,1,1,0,0]]
+
+petersen = [[0 , 1 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0], 
+            [0 , 1 , 0 , 0 , 0 , 1 , 0 , 0 , 0], 
+            [0 , 1 , 0 , 0, 0 , 1 , 0 , 0], 
+            [0 , 1, 0 , 0 , 0 , 1 , 0], 
+            [0 , 0 , 0 , 0 , 0 , 1], 
+            [0 , 0 , 1 , 1 , 0], 
+            [0 , 0 , 1 , 1], 
+            [0 , 0 , 1], 
+            [0, 0], 
+            [0]]
+pentagonal =    [[0 , 1 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0], 
+                [0 , 1 , 0 , 0 , 0 , 1 , 0 , 0 , 0], 
+                [0 , 1 , 0 , 0 , 0 , 1 , 0 , 0], 
+                [0 , 1 , 0 , 0 , 0 , 1 , 0], 
+                [0 , 0 , 0 , 0 , 0 , 1], 
+                [0 , 1 , 0 , 0 , 1], 
+                [0 , 1 , 0 , 0], 
+                [0 , 1 , 0], 
+                [0, 1], 
+                [0]]
 
 M_3 = [[0, 0, 1], [0, 1], [0]]
 M_4 = [[0, 1, 1, 1], [0, 0, 0], [0, 1], [0]]
@@ -22,7 +59,7 @@ M_13 = [[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1], [0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
 M_14 = [[0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0], [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1], [0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 1, 1], [0, 0, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1], [0, 1, 1, 0], [0, 0, 1], [0, 1], [0]]
 M_15 = [[0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1], [0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0], [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 0, 1], [0, 0, 1, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0, 0], [0, 1, 1, 0, 1, 0], [0, 1, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0], [0, 0], [0]]
 
-all_grahps = [M_3, M_4, M_5, M_6, M_7, M_8, M_9, M_10, M_11, M_12, M_13, M_14, M_15]
+all_grahps = [M_3, M_4, M_5, M_6, M_7, M_8, M_9, M_10, M_11, M_12]  #, M_13, M_14, M_15
 # Funcion que recibe un tiempo en segundos y lo formatea
 def timeConversion(tiempo):
     horas = int(tiempo / 60 / 60)
@@ -41,7 +78,7 @@ def returnValues(values):
     result = []
     for i in range(len(values)):
         if (values[i] > 10**(-25)):
-            result.append(str(i) + ': ' + str((values[i] * 100).round(1)))
+            result.append(str(i) + ': ' + str((values[i] * 100).round(2)))
         else:
             result.append(str(i) + ': 0')
     return result
@@ -92,7 +129,7 @@ def updateMatrix(matrix, index):
                 matrix[i].pop(j)
     return matrix
 
-def randomMatrixGenerator(nNodes):
+def randomMatrixGenerator(nNodes, cut=False):
     # Se genera la matriz de 0
     m = []
     for i in range(nNodes):
@@ -106,9 +143,11 @@ def randomMatrixGenerator(nNodes):
             if (i is not j):
                 if(rnd.random() >= 0.5):
                     m[i][j] = 1
-
-    # Se devuelve la mitad de la matriz para que sea simetrica
-    return cutHalfMatrix(m)
+    if cut:
+        return m
+    else:
+        # Se devuelve la mitad de la matriz para que sea simetrica
+        return cutHalfMatrix(m)
 
 # Recibe una matriz y devuelve la parte superior
 def cutHalfMatrix(matrix):
@@ -117,3 +156,65 @@ def cutHalfMatrix(matrix):
         matrix[i] = matrix[i][count:]
         count += 1
     return matrix
+
+# Devuelve todas las posibles combinaciones de matrices de adyacencia dado un número de nodos
+def getAllCombinations(nodes):
+    return  [list(i) for i in itertools.product([0, 1], repeat=int((nodes*nodes - nodes)/2))]
+
+# Construye todas las matrices de adyacencia dado un numero de nodos
+def getAllMatrices(nodes):
+    lst = getAllCombinations(nodes)
+    # m = randomMatrixGenerator(nodes, True)
+    matrices = []
+    for i in lst:
+        aux = randomMatrixGenerator(nodes, True)
+        for j in range(len(aux)):
+            for k in range(len(aux[j])):
+                if ((k != 0)):
+                    aux[j][k] = i.pop(0)
+        matrices.append(aux)
+        aux = []
+    return matrices
+
+def getPermutationMatrix(nodes):
+    # Se genera la matriz de 0
+    m = []
+    for i in range(nodes):
+        m.append([])
+        for _ in range(nodes):
+            m[i].append(0)
+
+    for i in range(len(m)):
+        if ((i+1) == nodes):
+            m[i][0] = 1
+        else:
+            m[i][i+1] = 1
+            
+    return m
+
+def getTransposeOfMatrix(matrix):
+    transpose = []
+    for i in range(len(matrix)):
+        transpose.append([])
+        for j in range(len(matrix[i])):
+            transpose[i].append(matrix[j][i])
+    return transpose
+
+def multiplyMatrices(m1, m2):
+    result = []
+    for i in range(len(m1)):
+        result.append([])
+        for j in range(len(m2[0])):
+            result[i].append(0)
+            for k in range(len(m1[0])):
+                result[i][j] += m1[i][k] * m2[k][j]
+    return result
+
+def permuteMatrix(matrix):
+    permutation = getPermutationMatrix(len(matrix))
+    transpose = getTransposeOfMatrix(permutation)
+    p1 = multiplyMatrices(matrix, permutation)
+    p2 = multiplyMatrices(p1, transpose)
+
+    return p2
+
